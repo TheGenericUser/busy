@@ -160,10 +160,10 @@ def enter_voucher(txn, seen_voucher_types):
     press_key("enter")
     time.sleep(STEP_PAUSE)
 
-    # if txn.voucher not in seen_voucher_types:
-    #     press_key("enter")
-    #     time.sleep(STEP_PAUSE)
-    #     seen_voucher_types.add(txn.voucher)
+    if txn.voucher not in seen_voucher_types:
+        press_key("enter")
+        time.sleep(STEP_PAUSE)
+        seen_voucher_types.add(txn.voucher)
 
     type_text(txn.raw_date)
     for _ in range(3):
