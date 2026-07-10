@@ -21,9 +21,9 @@ from loader import get_company_name, load_accounts, load_credentials, load_trans
 
 DOWN_ARROWS = {"payment": 4, "receipt": 5, "journal": 6}
 try:
-    STEP_PAUSE = float(input("Step pause: ") or 0.25)
+    STEP_PAUSE = float(input("Step pause: ") or 0.2)
 except ValueError:
-    STEP_PAUSE = 0.5
+    STEP_PAUSE = 0.2
 CALIBRATION_POINTS = ["company_button", "open_button", "close_button"]
 
 # When frozen into an exe (PyInstaller), relative paths must resolve next to
@@ -125,10 +125,12 @@ def enter_voucher(txn, seen_voucher_types):
         time.sleep(STEP_PAUSE)
         seen_voucher_types.add(txn.voucher)
 
+    time.sleep(STEP_PAUSE)
+
     pyautogui.typewrite(txn.raw_date)
     for _ in range(3):
         pyautogui.press("enter")
-    time.sleep(STEP_PAUSE)
+        time.sleep(STEP_PAUSE)
 
     # Journal entries: money received -> bank ledger first, then the other entity.
     # Money given -> other entity first, then bank (also the order for receipt/payment).
@@ -137,20 +139,24 @@ def enter_voucher(txn, seen_voucher_types):
     second_keyword = txn.category_keyword if bank_first else txn.bank_keyword
 
     pyautogui.typewrite(first_keyword)
+    time.sleep(STEP_PAUSE)
     pyautogui.press("enter")
     time.sleep(STEP_PAUSE)
 
     pyautogui.typewrite(format_amount(txn.amount))
+    time.sleep(STEP_PAUSE)
     for _ in range(3):
         pyautogui.press("enter")
-    time.sleep(STEP_PAUSE)
+        time.sleep(STEP_PAUSE)
 
     pyautogui.typewrite(second_keyword)
     pyautogui.press("enter")
     time.sleep(STEP_PAUSE)
 
     pyautogui.press("f2")
+    time.sleep(STEP_PAUSE)
     pyautogui.press("f2")
+    time.sleep(STEP_PAUSE)
     pyautogui.press("enter")
     time.sleep(STEP_PAUSE)
 
