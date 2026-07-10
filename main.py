@@ -5,8 +5,6 @@ vouchers, then company close - looping to the next user.
 First launch on a new machine: since data/coords.json doesn't exist yet, it
 walks you through a one-time calibration (3 clicks in Busy) before anything
 else - never again after that, unless coords.json is deleted.
-
-Press left Alt (with Busy focused) to start the whole run, Esc to stop.
 """
 import glob
 import json
