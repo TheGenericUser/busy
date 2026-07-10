@@ -75,7 +75,7 @@ def calibrate():
 
 def click(coords, name):
     x, y = coords[name]
-    pyautogui.moveTo(x, y)0.75
+    pyautogui.moveTo(x, y)
     pyautogui.click()
     time.sleep(STEP_PAUSE)
 
