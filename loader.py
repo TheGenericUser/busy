@@ -134,6 +134,7 @@ class Transaction:
     user: str
     bank: str
     voucher: str
+    financial_year: str
     txn_date: date
     raw_date: str
     category: str
@@ -150,7 +151,8 @@ def load_transactions(jsonl_path: str, accounts: dict) -> list[Transaction]:
         return []
 
     header = lines[0]
-    fy_start_year = parse_fy(header["financial_year"])
+    financial_year = header["financial_year"]
+    fy_start_year = parse_fy(financial_year)
     default_user = header.get("user")
     default_bank = header.get("bank")
 
@@ -167,6 +169,7 @@ def load_transactions(jsonl_path: str, accounts: dict) -> list[Transaction]:
             user=user,
             bank=bank,
             voucher=voucher,
+            financial_year=financial_year,
             txn_date=resolve_date(fy_start_year, row["date"]),
             raw_date=row["date"],
             category=row["category"],
@@ -175,6 +178,21 @@ def load_transactions(jsonl_path: str, accounts: dict) -> list[Transaction]:
             bank_keyword=get_bank_keyword(accounts, user, bank),
         ))
     return transactions
+
+
+def load_voucher_state(path: str) -> dict:
+    """Which voucher types (per user, per financial year) have already had
+    their one-time first-entry prompt handled - persisted so it's remembered
+    across separate runs of the exe, not just within one sitting."""
+    if not os.path.exists(path):
+        return {}
+    with open(path) as f:
+        return json.load(f)
+
+
+def save_voucher_state(path: str, state: dict) -> None:
+    with open(path, "w") as f:
+        json.dump(state, f, indent=2)
 
 
 def parse_filename(path: str):
@@ -226,18 +244,21 @@ def validate_file(path: str, header: dict, rows: list[dict], accounts: dict) -> 
     return errors
 
 
-def validate_all(data_dir: str, accounts: dict) -> list[str]:
-    """Validates every data/*.jsonl file. Files with no entries yet (empty or
-    header-only) are skipped rather than flagged as errors."""
+def validate_all(data_dir: str, accounts: dict) -> tuple[list[str], list[str]]:
+    """Validates every data/*.jsonl file. Returns (skipped_paths, errors).
+    Files with no entries yet (empty or header-only) are skipped rather than
+    flagged as errors. Doesn't print/log anything itself - that's the caller's
+    job, so this stays a pure data-in data-out function."""
+    skipped = []
     errors = []
     for path in sorted(glob.glob(os.path.join(data_dir, "*.jsonl"))):
         with open(path) as f:
             lines = [json.loads(line) for line in f if line.strip()]
         if len(lines) < 2:
-            print(f"[skip] {path} has no entries yet")
+            skipped.append(path)
             continue
         errors.extend(validate_file(path, lines[0], lines[1:], accounts))
-    return errors
+    return skipped, errors
 
 
 if __name__ == "__main__":
