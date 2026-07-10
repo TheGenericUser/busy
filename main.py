@@ -1,8 +1,12 @@
-"""Drives Tally from data/*.jsonl passbook files: one company open/login per
+"""Drives Busy from data/*.jsonl passbook files: one company open/login per
 user, every one of their bank files entered as Receipt/Payment/Journal
 vouchers, then company close - looping to the next user.
 
-Press left Alt (with Tally focused) to start the whole run, Esc to stop.
+First launch on a new machine: since data/coords.json doesn't exist yet, it
+walks you through a one-time calibration (3 clicks in Busy) before anything
+else - never again after that, unless coords.json is deleted.
+
+Press left Alt (with Busy focused) to start the whole run, Esc to stop.
 """
 import glob
 import json
@@ -13,12 +17,13 @@ import time
 from collections import defaultdict
 
 import pyautogui
-from pynput import keyboard
+from pynput import keyboard, mouse
 
 from loader import get_company_name, load_accounts, load_credentials, load_transactions, read_header, validate_all
 
 DOWN_ARROWS = {"payment": 4, "receipt": 5, "journal": 6}
 STEP_PAUSE = 0.1
+CALIBRATION_POINTS = ["company_button", "open_button", "close_button"]
 
 # When frozen into an exe (PyInstaller), relative paths must resolve next to
 # the exe itself, not whatever directory it happened to be launched from.
@@ -32,6 +37,37 @@ def data_path(*parts):
 def load_coords():
     with open(data_path("coords.json")) as f:
         return json.load(f)
+
+
+def capture_click():
+    captured = {}
+
+    def on_click(x, y, button, pressed):
+        if pressed:
+            captured["xy"] = (x, y)
+            return False
+
+    with mouse.Listener(on_click=on_click) as listener:
+        listener.join()
+    return captured["xy"]
+
+
+def calibrate():
+    print("First-time setup: click 3 spots in Busy (data/coords.json not found yet).")
+    print("Note: 'close_button' only appears once the Company menu is open, so you")
+    print("may need to click Company again first to bring the menu back up.\n")
+
+    coords = {}
+    for point in CALIBRATION_POINTS:
+        input(f"Press Enter, then click: {point.replace('_', ' ')}")
+        x, y = capture_click()
+        print(f"  -> {x}, {y}")
+        coords[point] = [x, y]
+
+    os.makedirs(data_path(), exist_ok=True)
+    with open(data_path("coords.json"), "w") as f:
+        json.dump(coords, f, indent=2)
+    print("Saved. This only happens once per machine.\n")
 
 
 def click(coords, name):
@@ -223,6 +259,10 @@ def on_release(key):
 
 
 def main():
+    if not os.path.exists(data_path("coords.json")):
+        calibrate()
+
+    print("Ready. Focus Busy, press left Alt to start a run, Esc to quit.")
     with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
         listener.join()
 

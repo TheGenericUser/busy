@@ -1,5 +1,5 @@
 """Turn hand-entered passbook transactions (data/*.jsonl) into records
-ready for the Tally automation.
+ready for the Busy automation.
 
 One file = one passbook: file format (data/savita_bagri_hdfc_26-27.jsonl):
     line 1:   {"financial_year": "26-27", "user": "Savita Bagri", "bank": "HDFC"}
@@ -13,18 +13,18 @@ user/bank live in the header so you don't retype them per line; a line can
 still set its own "user"/"bank" to override the header for a one-off mixed entry.
 
 amount is signed for bookkeeping (+ = money into the bank, - = money out) but
-Tally only ever needs the magnitude typed in - direction comes from the
+Busy only ever needs the magnitude typed in - direction comes from the
 voucher type, not from ledger ordering (the category ledger is always typed
 before the bank ledger, for every voucher type).
 
-data/accounts.json holds, per user: "_company" (the exact Tally company name
+data/accounts.json holds, per user: "_company" (the exact Busy company name
 to type at Open), one entry per bank mapping to {"_ledger": <exact keyword>}
 for that bank's own ledger, and one keyword per category - categories sit at
 the user level (not nested per bank), since the same category keyword applies
 across all of that user's banks.
 
 data/credentials.json holds a single {"username", "password"} - every company
-uses the same Tally login.
+uses the same Busy login.
 """
 import glob
 import json
