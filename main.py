@@ -22,7 +22,10 @@ from pynput import keyboard, mouse
 from loader import get_company_name, load_accounts, load_credentials, load_transactions, read_header, validate_all
 
 DOWN_ARROWS = {"payment": 4, "receipt": 5, "journal": 6}
-STEP_PAUSE = 0.1
+try:
+    STEP_PAUSE = float(input("Step pause: ") or 0.25)
+except ValueError:
+    STEP_PAUSE = 0.5
 CALIBRATION_POINTS = ["company_button", "open_button", "close_button"]
 
 # When frozen into an exe (PyInstaller), relative paths must resolve next to
@@ -72,7 +75,7 @@ def calibrate():
 
 def click(coords, name):
     x, y = coords[name]
-    pyautogui.moveTo(x, y)
+    pyautogui.moveTo(x, y)0.75
     pyautogui.click()
     time.sleep(STEP_PAUSE)
 
